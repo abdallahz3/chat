@@ -42,14 +42,14 @@ defmodule ChatWeb.UserSocket do
     case authenticate(username, token) do
       {:ok, user} ->
         case user.role do
-          "admin" ->
+          "Admin" ->
             socket = assign(socket, :username, user.username)
             socket = assign(socket, :user_id, user.username)
             socket = assign(socket, :is_admin, true)
 
             {:ok, socket}
 
-          "support_agent" ->
+          "support agent" ->
             socket = assign(socket, :username, user.username)
             socket = assign(socket, :user_id, user.username)
             socket = assign(socket, :company, user.company)
