@@ -5,7 +5,11 @@ defmodule Chat.GroupMember do
   schema "groups_members" do
     # field :group_id, :string
     field :member_id, :string
-    belongs_to :group, Chat.Group, [foreign_key: :group_name]
+
+    belongs_to :group, Chat.Group,
+      foreign_key: :group_name,
+      type: :string,
+      references: :group_name
 
     timestamps()
   end

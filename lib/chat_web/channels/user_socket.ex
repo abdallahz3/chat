@@ -23,6 +23,7 @@ defmodule ChatWeb.UserSocket do
   # each company has a group of its support agents
   channel "companies:*", ChatWeb.SupportAgentGroup
   channel "groups:*", ChatWeb.Group
+  # channel "admins:*", ChatWeb.AdminGroup
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
@@ -40,12 +41,32 @@ defmodule ChatWeb.UserSocket do
 
     case authenticate(username, token) do
       {:ok, user} ->
-        socket = assign(socket, :username, user.username)
-        socket = assign(socket, :user_id, user.username)
-        socket = assign(socket, :is_support_agent, true)
-        socket = assign(socket, :company, user.company)
+        case user.role do
+          "admin" ->
+            socket = assign(socket, :username, user.username)
+            socket = assign(socket, :user_id, user.username)
+            socket = assign(socket, :is_admin, true)
 
-        {:ok, socket}
+            {:ok, socket}
+
+          "support_agent" ->
+            socket = assign(socket, :username, user.username)
+            socket = assign(socket, :user_id, user.username)
+            socket = assign(socket, :company, user.company)
+            socket = assign(socket, :is_admin, false)
+            socket = assign(socket, :is_support_agent, true)
+
+            {:ok, socket}
+
+          _ ->
+            socket = assign(socket, :username, user.username)
+            socket = assign(socket, :user_id, user.username)
+            socket = assign(socket, :company, user.company)
+            socket = assign(socket, :is_admin, false)
+            socket = assign(socket, :is_support_agent, false)
+
+            {:ok, socket}
+        end
 
       {:error, _} ->
         :error
@@ -111,8 +132,8 @@ defmodule ChatWeb.UserSocket do
           {:ok, "token invalid"} ->
             {:error, %{reason: "invalid"}}
 
-          {:ok, %{"Companyname" => company, "username" => username}} ->
-            {:ok, %{company: company, username: username}}
+          {:ok, user} ->
+            {:ok, %{company: user["Companyname"], username: user["username"], role: user["Role"]}}
         end
 
       _ ->
@@ -121,81 +142,4 @@ defmodule ChatWeb.UserSocket do
 
     # {:ok, %{username: username, company: "MT Care"}}
   end
-
-  # defp handle_in(nil, %{event: "toooooooz", topic: topic, ref: ref} = message, state, socket) do
-  #   alias Phoenix.Socket.{Broadcast, Message, Reply}
-  #   case socket.handler.__channel__(topic) do
-  #     {channel, opts} ->
-  #       case Phoenix.Channel.Server.join(socket, channel, message, opts) do
-  #         {:ok, reply, pid} ->
-  #           reply = %Reply{join_ref: ref, ref: ref, topic: topic, status: :ok, payload: reply}
-  #           state = put_channel(state, pid, topic, ref)
-  #           {:reply, :ok, encode_reply(socket, reply), {state, socket}}
-
-  #         {:error, reply} ->
-  #           reply = %Reply{join_ref: ref, ref: ref, topic: topic, status: :error, payload: reply}
-  #           {:reply, :error, encode_reply(socket, reply), {state, socket}}
-  #       end
-
-  #     _ ->
-  #       {:reply, :error, encode_ignore(socket, message), {state, socket}}
-  #   end
-  # end
-
-  # defp handle_in(nil, %{event: "toooooooz", topic: topic, ref: ref} = message, state, socket) do
-  #   alias Phoenix.Socket.{Broadcast, Message, Reply}
-  #   case socket.handler.__channel__(topic) do
-  #     {channel, opts} ->
-  #       case Phoenix.Channel.Server.join(socket, channel, message, opts) do
-  #         {:ok, reply, pid} ->
-  #           reply = %Reply{join_ref: ref, ref: ref, topic: topic, status: :ok, payload: reply}
-  #           state = put_channel(state, pid, topic, ref)
-  #           {:reply, :ok, encode_reply(socket, reply), {state, socket}}
-
-  #         {:error, reply} ->
-  #           reply = %Reply{join_ref: ref, ref: ref, topic: topic, status: :error, payload: reply}
-  #           {:reply, :error, encode_reply(socket, reply), {state, socket}}
-  #       end
-
-  #     _ ->
-  #       {:reply, :error, encode_ignore(socket, message), {state, socket}}
-  #   end
-  # end
-
-  # def handle_in(_, %{ref: ref, topic: "phoenix", event: "toz"}, state, socket) do
-  #   IO.puts "Allah Akbar"
-  #   alias Phoenix.Socket.{Reply}
-  #   reply = %Reply{
-  #     ref: ref,
-  #     topic: "phoenix",
-  #     status: :ok,
-  #     payload: %{}
-  #   }
-
-  #   {:reply, :ok, encode_reply(socket, reply), {state, socket}}
-  # end
-
-  # defp put_channel(state, pid, topic, join_ref) do
-  #   %{channels: channels, channels_inverse: channels_inverse} = state
-  #   monitor_ref = Process.monitor(pid)
-
-  #   %{
-  #     state |
-  #       channels: Map.put(channels, topic, {pid, monitor_ref}),
-  #       channels_inverse: Map.put(channels_inverse, pid, {topic, join_ref})
-  #   }
-  # end
-
-  # defp encode_reply(%{serializer: serializer}, message) do
-  #   {:socket_push, opcode, payload} = serializer.encode!(message)
-  #   {opcode, payload}
-  # end
-
-  # defp encode_ignore(%{handler: handler} = socket, %{ref: ref, topic: topic}) do
-  #   require Logger
-  #   alias Phoenix.Socket.{Broadcast, Message, Reply}
-  #   Logger.warn fn -> "Ignoring unmatched topic \"#{topic}\" in #{inspect(handler)}" end
-  #   reply = %Reply{ref: ref, topic: topic, status: :error, payload: %{reason: "unmatched topic"}}
-  #   encode_reply(socket, reply)
-  # end
 end

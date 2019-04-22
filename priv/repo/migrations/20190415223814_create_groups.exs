@@ -8,5 +8,7 @@ defmodule Chat.Repo.Migrations.CreateGroups do
 
       timestamps()
     end
+
+    create unique_index(:groups, [:group_name])
   end
 end

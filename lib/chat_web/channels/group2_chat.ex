@@ -1,6 +1,7 @@
 defmodule ChatWeb.Group do
   use ChatWeb, :channel
   alias Chat.Repo
+  alias ChatWeb.Presence
   import Ecto.Query, only: [from: 2]
 
   def join("groups:" <> group_name, _params, socket) do
@@ -19,9 +20,21 @@ defmodule ChatWeb.Group do
 
           [_member] ->
             IO.puts("member #{socket.assigns.username} joined")
+            send(self(), {:after_join, group_name})
             {:ok, socket}
         end
     end
+  end
+
+  def handle_info({:after_join, group_name}, socket) do
+    push(socket, "presence_state", Presence.list(socket))
+
+    {:ok, _} =
+      Presence.track(socket, socket.user_id, %{
+        online_at: inspect(System.system_time(:seconds))
+      })
+
+    {:noreply, socket}
   end
 
   def handle_in("new_chat_message", %{"message" => message}, socket) do

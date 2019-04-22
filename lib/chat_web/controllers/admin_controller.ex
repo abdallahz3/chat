@@ -10,8 +10,20 @@ defmodule ChatWeb.AdminController do
 
     case authenticate(param["username"], param["token"]) do
       {:ok, user} ->
+        case user.role do
+          "Admin" ->
+            conn
+            |> put_session(:admin_username, user.username)
+            |> configure_session(renew: true)
+            |> json(%{loggedin: "success"})
+
+          _ ->
+            conn
+            |> json(%{loggedin: "failed", error: "You are NOT an admin"})
+        end
+
         conn
-        |> put_session(:admin_username, "toz")
+        |> put_session(:admin_username, user.username)
         |> configure_session(renew: true)
         |> json(%{loggedin: "success"})
 
@@ -29,6 +41,15 @@ defmodule ChatWeb.AdminController do
         admin: conn.assigns.admin_username,
         group_name: param["group_name"]
       })
+
+      if Map.has_key?(param, "join_me") do
+        if param["join_me"] == true do
+          Repo.insert(%Chat.GroupMember{
+            member_id: conn.assigns.admin_username,
+            group_name: param["group_name"]
+          })
+        end
+      end
 
       json(conn, %{error: "", created: true})
     else
@@ -66,7 +87,7 @@ defmodule ChatWeb.AdminController do
 
   def delete_group(conn, param) do
     if Map.has_key?(param, "group_name") do
-      case Repo.get(Chat.Group, param["group_name"]) do
+      case Repo.get_by(Chat.Group, group_name: param["group_name"]) do
         nil ->
           json(conn, %{error: "Group does not exist"})
 
@@ -93,23 +114,24 @@ defmodule ChatWeb.AdminController do
       if !Map.has_key?(param, "member_id") do
         json(conn, %{error: "You need to specify member_id"})
       else
-        case Repo.get(Chat.Group, param["group_name"]) do
+        case Repo.get_by(Chat.Group, group_name: param["group_name"]) do
           nil ->
             json(conn, %{error: "Group does not exist"})
 
           group ->
-            if group.admin != conn.assigns.admin_usrname do
+            if group.admin != conn.assigns.admin_username do
               json(conn, %{error: "Not your group"})
             else
               case from(g in Chat.GroupMember,
-                     where: g.group_name == ^group.group_name and g.member_id == ^param["member_id"],
+                     where:
+                       g.group_name == ^param["group_name"] and g.member_id == ^param["member_id"],
                      select: g
                    )
                    |> Chat.Repo.all() do
                 [] ->
                   Repo.insert(%Chat.GroupMember{
                     # member_id: Integer.to_string(param["member_id"]),
-                    # member_id: param["member_id"],
+                    member_id: param["member_id"],
                     group_name: param["group_name"]
                   })
 
@@ -128,16 +150,25 @@ defmodule ChatWeb.AdminController do
     if !Map.has_key?(param, "group_name") do
       json(conn, %{error: "You need to specify group_name"})
     else
-      group = Chat.Repo.get(Chat.Group, param["group_name"])
+      group = Chat.Repo.get_by(Chat.Group, group_name: param["group_name"])
+
       if group.admin != conn.assigns.admin_username do
         json(conn, %{error: "Not your group"})
       else
-        group = Chat.Repo.preload(group, [:members])
+        # group = Chat.Repo.preload(group, [:members])
+        # members = from m in Chat.GroupMember,
+        #   where: m.group_name == ^param["group_name"],
+        #   select: m
+        #   |> Chat.Repo.all()
 
-        members =
-          group
-          |> (fn g -> g.members end).()
-          |> Enum.map(fn m -> m.member_id end)
+        q =
+          from m in Chat.GroupMember,
+            where: m.group_name == ^param["group_name"],
+            select: m
+
+        members = Chat.Repo.all(q)
+
+        members = members |> Enum.map(fn m -> m.member_id end)
 
         json(conn, members)
       end
@@ -145,6 +176,30 @@ defmodule ChatWeb.AdminController do
   end
 
   def authenticate(username, token) do
-    {:ok, "toz"}
+    {:ok, encoded} = Jason.encode(%{username: username, token: token})
+
+    case :httpc.request(
+           :post,
+           {'http://staging.cense.ai:8084/v1/chat/authenticate', [], 'application/json',
+            '#{encoded}'},
+           [],
+           []
+         ) do
+      {:ok, res} ->
+        {_, _, res} = res
+
+        case Jason.decode(res) do
+          {:ok, "token invalid"} ->
+            {:error, %{reason: "invalid"}}
+
+          {:ok, %{"Companyname" => company, "Role" => role, "username" => username}} ->
+            {:ok, %{company: company, username: username, role: role}}
+        end
+
+      _ ->
+        {:error, %{reason: "invalid"}}
+    end
+
+    # {:ok, %{username: username, company: "MT Care"}}
   end
 end

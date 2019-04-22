@@ -9,6 +9,5 @@ defmodule Chat.Repo.Migrations.CreateGroupMessages do
 
       timestamps()
     end
-
   end
 end
