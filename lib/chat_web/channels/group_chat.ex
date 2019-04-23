@@ -57,10 +57,32 @@ defmodule ChatWeb.CustomerGroup do
   end
 
   def handle_in("new_name", %{"name" => name}, socket) do
-    "customers_groups:" <> topic = socket.topic
+    if socket.assigns.is_support_agent do
+      # nothing
+    else
+      socket = assign(socket, :name, name)
+      broadcast_from(socket, "new_name", %{sender: "customer", name: name})
+    end
 
-    socket = assign(socket, :name, name)
-    broadcast_from(socket, "new_name", %{sender: "customer", name: name})
+    {:noreply, socket}
+  end
+
+  def handle_in("started_typing", _, socket) do
+    if socket.assigns.is_support_agent do
+      broadcast_from(socket, "started_typing", %{sender: "support_agent"})
+    else
+      broadcast_from(socket, "started_typing", %{sender: "customer"})
+    end
+
+    {:noreply, socket}
+  end
+
+  def handle_in("stopped_typing", _, socket) do
+    if socket.assigns.is_support_agent do
+      broadcast_from(socket, "stopped_typing", %{sender: "support_agent"})
+    else
+      broadcast_from(socket, "stopped_typing", %{sender: "customer"})
+    end
 
     {:noreply, socket}
   end

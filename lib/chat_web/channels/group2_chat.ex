@@ -47,4 +47,16 @@ defmodule ChatWeb.Group do
 
     {:noreply, socket}
   end
+
+  def handle_in("started_typing", _, socket) do
+    broadcast_from(socket, "started_typing", %{sender: socket.assigns.username})
+
+    {:noreply, socket}
+  end
+
+  def handle_in("stopped_typing", _, socket) do
+    broadcast_from(socket, "stopped_typing", %{sender: socket.assigns.username})
+
+    {:noreply, socket}
+  end
 end
