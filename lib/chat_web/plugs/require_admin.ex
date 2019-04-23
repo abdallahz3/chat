@@ -6,17 +6,24 @@ defmodule ChatWeb.Plugs.RequireAdmin do
   end
 
   def call(conn, _params) do
-    conn = fetch_session(conn)
+    IO.puts "---------------------"
+    IO.inspect conn.params
+    IO.puts "---------------------"
+    if Map.has_key?(conn.params, "token") do
+      case Phoenix.Token.verify(ChatWeb.Endpoint, "salt", conn.params["token"], max_age: 86400) do
+        {:ok, user} ->
+          conn
+          |> assign(:admin_username, user.username)
 
-    case get_session(conn, :admin_username) do
-      username when not is_nil(username) ->
-        conn
-        |> assign(:admin_username, username)
-
-      nil ->
-        conn
-        |> json(%{error: "you need to login with admin account"})
-        |> halt()
+        {:error, reason} ->
+          conn
+          |> json(%{error: reason})
+          |> halt()
+      end
+    else
+      conn
+      |> json(%{error: "you need to supply token"})
+      |> halt()
     end
   end
 end

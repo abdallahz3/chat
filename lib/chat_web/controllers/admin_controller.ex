@@ -6,26 +6,20 @@ defmodule ChatWeb.AdminController do
   plug ChatWeb.Plugs.RequireAdmin when action not in [:login]
 
   def login(conn, param) do
-    conn = fetch_session(conn)
-
     case authenticate(param["username"], param["token"]) do
       {:ok, user} ->
         case user.role do
           "Admin" ->
             conn
-            |> put_session(:admin_username, user.username)
-            |> configure_session(renew: true)
-            |> json(%{loggedin: "success"})
+            |> json(%{
+              loggedin: "success",
+              token: Phoenix.Token.sign(ChatWeb.Endpoint, "salt", user)
+            })
 
           _ ->
             conn
             |> json(%{loggedin: "failed", error: "You are NOT an admin"})
         end
-
-        conn
-        |> put_session(:admin_username, user.username)
-        |> configure_session(renew: true)
-        |> json(%{loggedin: "success"})
 
       {:error, _} ->
         conn
@@ -34,8 +28,6 @@ defmodule ChatWeb.AdminController do
   end
 
   def create_group(conn, param) do
-    IO.inspect(param)
-
     if Map.has_key?(param, "group_name") do
       Repo.insert(%Chat.Group{
         admin: conn.assigns.admin_username,
