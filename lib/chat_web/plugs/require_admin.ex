@@ -6,9 +6,10 @@ defmodule ChatWeb.Plugs.RequireAdmin do
   end
 
   def call(conn, _params) do
-    IO.puts "---------------------"
-    IO.inspect conn.params
-    IO.puts "---------------------"
+    IO.puts("---------------------")
+    IO.inspect(conn.params)
+    IO.puts("---------------------")
+
     if Map.has_key?(conn.params, "token") do
       case Phoenix.Token.verify(ChatWeb.Endpoint, "salt", conn.params["token"], max_age: 86400) do
         {:ok, user} ->

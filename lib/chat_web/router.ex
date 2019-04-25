@@ -23,17 +23,19 @@ defmodule ChatWeb.Router do
   scope "/api", ChatWeb do
     pipe_through :api
 
-    get "initialize-new-group", GroupController, :initialize_new_group
+    get "/initialize-new-group", GroupController, :initialize_new_group
+    post "/sync", PageController, :sync
   end
 
   scope "/api/admin", ChatWeb do
     pipe_through :api
 
-    post "login", AdminController, :login
-    post "create-group", AdminController, :create_group
-    get "get-groups", AdminController, :get_groups
-    delete "delete-group", AdminController, :delete_group
-    post "add-member-to-group", AdminController, :add_member_to_group
-    get "get-group-members", AdminController, :get_group_members
+    post "/login", AdminController, :login
+    post "/create-group", AdminController, :create_group
+    get "/get-groups", AdminController, :get_groups
+    delete "/delete-group", AdminController, :delete_group
+    post "/add-members-to-group", AdminController, :add_member_to_group
+    post "/delete-members-from-group", AdminController, :delete_member_from_group
+    get "/get-group-members", AdminController, :get_group_members
   end
 end

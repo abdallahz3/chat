@@ -103,8 +103,8 @@ defmodule ChatWeb.AdminController do
     if !Map.has_key?(param, "group_name") do
       json(conn, %{error: "You need to specify group_name"})
     else
-      if !Map.has_key?(param, "member_id") do
-        json(conn, %{error: "You need to specify member_id"})
+      if !Map.has_key?(param, "members_ids") do
+        json(conn, %{error: "You need to specify members_ids"})
       else
         case Repo.get_by(Chat.Group, group_name: param["group_name"]) do
           nil ->
@@ -114,24 +114,70 @@ defmodule ChatWeb.AdminController do
             if group.admin != conn.assigns.admin_username do
               json(conn, %{error: "Not your group"})
             else
-              case from(g in Chat.GroupMember,
-                     where:
-                       g.group_name == ^param["group_name"] and g.member_id == ^param["member_id"],
-                     select: g
-                   )
-                   |> Chat.Repo.all() do
-                [] ->
-                  Repo.insert(%Chat.GroupMember{
-                    # member_id: Integer.to_string(param["member_id"]),
-                    member_id: param["member_id"],
-                    group_name: param["group_name"]
-                  })
+              res =
+                Enum.map(param["members_ids"], fn member_id ->
+                  case from(g in Chat.GroupMember,
+                         where:
+                           g.group_name == ^param["group_name"] and
+                             g.member_id == ^member_id,
+                         select: g
+                       )
+                       |> Chat.Repo.all() do
+                    [] ->
+                      Repo.insert(%Chat.GroupMember{
+                        # member_id: Integer.to_string(param["member_id"]),
+                        member_id: member_id,
+                        group_name: param["group_name"]
+                      })
 
-                  json(conn, %{error: "", added: true})
+                      %{member_id: member_id, error: "", added: true}
 
-                [_member] ->
-                  json(conn, %{error: "Already member"})
-              end
+                    [_member] ->
+                      %{member_id: member_id, error: "Already member"}
+                  end
+                end)
+
+              json(conn, res)
+            end
+        end
+      end
+    end
+  end
+
+  def remove_member_from_group(conn, param) do
+    if !Map.has_key?(param, "group_name") do
+      json(conn, %{error: "You need to specify group_name"})
+    else
+      if !Map.has_key?(param, "members_ids") do
+        json(conn, %{error: "You need to specify members_ids"})
+      else
+        case Repo.get_by(Chat.Group, group_name: param["group_name"]) do
+          nil ->
+            json(conn, %{error: "Group does not exist"})
+
+          group ->
+            if group.admin != conn.assigns.admin_username do
+              json(conn, %{error: "Not your group"})
+            else
+              res =
+                Enum.map(param["members_ids"], fn member_id ->
+                  case from(g in Chat.GroupMember,
+                         where:
+                           g.group_name == ^param["group_name"] and
+                             g.member_id == ^member_id,
+                         select: g
+                       )
+                       |> Chat.Repo.all() do
+                    [] ->
+                      %{member_id: member_id, error: "member not found in group"}
+
+                    [member] ->
+                      Repo.delete(member)
+                      %{member_id: member_id, error: "", deleted: true}
+                  end
+                end)
+
+              json(conn, res)
             end
         end
       end
