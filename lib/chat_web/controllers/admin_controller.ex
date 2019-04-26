@@ -144,7 +144,7 @@ defmodule ChatWeb.AdminController do
     end
   end
 
-  def remove_member_from_group(conn, param) do
+  def delete_member_from_group(conn, param) do
     if !Map.has_key?(param, "group_name") do
       json(conn, %{error: "You need to specify group_name"})
     else
