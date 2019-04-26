@@ -190,25 +190,31 @@ defmodule ChatWeb.AdminController do
     else
       group = Chat.Repo.get_by(Chat.Group, group_name: param["group_name"])
 
-      if group.admin != conn.assigns.admin_username do
-        json(conn, %{error: "Not your group"})
-      else
-        # group = Chat.Repo.preload(group, [:members])
-        # members = from m in Chat.GroupMember,
-        #   where: m.group_name == ^param["group_name"],
-        #   select: m
-        #   |> Chat.Repo.all()
+      case group do
+        nil ->
+          json(conn, %{error: "Group does not exist"})
 
-        q =
-          from m in Chat.GroupMember,
-            where: m.group_name == ^param["group_name"],
-            select: m
+        group ->
+          if group.admin != conn.assigns.admin_username do
+            json(conn, %{error: "Not your group"})
+          else
+            # group = Chat.Repo.preload(group, [:members])
+            # members = from m in Chat.GroupMember,
+            #   where: m.group_name == ^param["group_name"],
+            #   select: m
+            #   |> Chat.Repo.all()
 
-        members = Chat.Repo.all(q)
+            q =
+              from m in Chat.GroupMember,
+                where: m.group_name == ^param["group_name"],
+                select: m
 
-        members = members |> Enum.map(fn m -> m.member_id end)
+            members = Chat.Repo.all(q)
 
-        json(conn, members)
+            members = members |> Enum.map(fn m -> m.member_id end)
+
+            json(conn, members)
+          end
       end
     end
   end
