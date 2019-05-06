@@ -11,7 +11,7 @@ defmodule ChatWeb.Group do
 
       group ->
         case from(g in Chat.GroupMember,
-               where: g.group_id == ^group.id and g.member_id == ^socket.assigns.username,
+               where: g.group_name == ^group.group_name and g.member_id == ^socket.assigns.username,
                select: g
              )
              |> Chat.Repo.all() do
@@ -30,7 +30,7 @@ defmodule ChatWeb.Group do
     push(socket, "presence_state", Presence.list(socket))
 
     {:ok, _} =
-      Presence.track(socket, socket.user_id, %{
+      Presence.track(socket, socket.assigns.user_id, %{
         online_at: inspect(System.system_time(:seconds))
       })
 

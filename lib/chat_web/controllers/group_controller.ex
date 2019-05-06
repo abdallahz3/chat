@@ -10,4 +10,9 @@ defmodule ChatWeb.GroupController do
 
     json(conn, %{chat_group_name: s, token: t})
   end
+
+  def get_groups(conn, params) do
+    IO.inspect params
+    json(conn, %{toz: "toz"})
+  end
 end

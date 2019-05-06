@@ -24,6 +24,7 @@ defmodule ChatWeb.Router do
     pipe_through :api
 
     get "/initialize-new-group", GroupController, :initialize_new_group
+    get "/get-groups", GroupController, :get_groups
     post "/sync", PageController, :sync
   end
 

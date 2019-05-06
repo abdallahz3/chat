@@ -68,7 +68,8 @@ defmodule ChatWeb.UserSocket do
             {:ok, socket}
         end
 
-      {:error, _} ->
+      {:error, reason} ->
+        IO.inspect reason
         :error
     end
 
