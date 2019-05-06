@@ -1,5 +1,6 @@
 defmodule ChatWeb.GroupController do
   use ChatWeb, :controller
+  import Ecto.Query, only: [from: 2]
 
   def initialize_new_group(conn, _params) do
     s =
@@ -12,7 +13,13 @@ defmodule ChatWeb.GroupController do
   end
 
   def get_groups(conn, params) do
-    IO.inspect params
-    json(conn, %{toz: "toz"})
+    # {:ok, res} = Ecto.Adapters.SQL.query Chat.Repo, "select * from groups_members where member_id = 'avsnalawade123@gmail.com'", []
+    res = from(g in Chat.GroupMember,
+      where: g.member_id == ^params.username,
+      select: g.group_name
+    )
+    |> Chat.Repo.all
+
+    json(conn, res)
   end
 end
