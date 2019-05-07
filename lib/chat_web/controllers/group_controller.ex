@@ -15,7 +15,7 @@ defmodule ChatWeb.GroupController do
   def get_groups(conn, params) do
     # {:ok, res} = Ecto.Adapters.SQL.query Chat.Repo, "select * from groups_members where member_id = 'avsnalawade123@gmail.com'", []
     res = from(g in Chat.GroupMember,
-      where: g.member_id == ^params.username,
+      where: g.member_id == ^params["username"],
       select: g.group_name
     )
     |> Chat.Repo.all
