@@ -6,14 +6,14 @@ defmodule ChatWeb.AdminController do
   def create_group(conn, param) do
     if Map.has_key?(param, "group_name") do
       Repo.insert(%Chat.Group{
-        admin: conn.assigns.admin_username,
+        admin: conn.assigns.user.username,
         group_name: param["group_name"]
       })
 
       if Map.has_key?(param, "join_me") do
         if param["join_me"] == true do
           Repo.insert(%Chat.GroupMember{
-            member_id: conn.assigns.admin_username,
+            member_id: conn.assigns.user.username,
             group_name: param["group_name"]
           })
         end
@@ -44,7 +44,7 @@ defmodule ChatWeb.AdminController do
 
     query =
       from g in Chat.Group,
-        where: g.id >= ^f and g.id < ^t and g.admin == ^conn.assigns.admin_username,
+        where: g.id >= ^f and g.id < ^t and g.admin == ^conn.assigns.user.username,
         select: g
 
     groups =
@@ -60,7 +60,7 @@ defmodule ChatWeb.AdminController do
           json(conn, %{error: "Group does not exist"})
 
         group ->
-          if group.admin == conn.assigns.admin_username do
+          if group.admin == conn.assigns.user.username do
             Repo.delete(group)
             json(conn, %{error: "", deleted: true})
           else
@@ -87,7 +87,7 @@ defmodule ChatWeb.AdminController do
             json(conn, %{error: "Group does not exist"})
 
           group ->
-            if group.admin != conn.assigns.admin_username do
+            if group.admin != conn.assigns.user.username do
               json(conn, %{error: "Not your group"})
             else
               res =
@@ -132,7 +132,7 @@ defmodule ChatWeb.AdminController do
             json(conn, %{error: "Group does not exist"})
 
           group ->
-            if group.admin != conn.assigns.admin_username do
+            if group.admin != conn.assigns.user.username do
               json(conn, %{error: "Not your group"})
             else
               res =
@@ -171,7 +171,7 @@ defmodule ChatWeb.AdminController do
           json(conn, %{error: "Group does not exist"})
 
         group ->
-          if group.admin != conn.assigns.admin_username do
+          if group.admin != conn.assigns.user.username do
             json(conn, %{error: "Not your group"})
           else
             # group = Chat.Repo.preload(group, [:members])
