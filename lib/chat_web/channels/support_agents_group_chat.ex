@@ -2,9 +2,9 @@ defmodule ChatWeb.SupportAgentGroup do
   use ChatWeb, :channel
 
   def join("companies:" <> company, _params, socket) do
-    if socket.assigns.is_support_agent do
-      if socket.assigns.company == company do
-        IO.puts("this is a company: " <> company)
+    if socket.assigns.user.role == "support agent" do
+      if socket.assigns.user.company == company do
+        IO.puts("this is company: " <> company)
         {:ok, socket}
       else
         {:error, %{reason: "Not your company"}}

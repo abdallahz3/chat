@@ -1,4 +1,4 @@
-defmodule ChatWeb.GroupController do
+defmodule ChatWeb.ApiController do
   use ChatWeb, :controller
   import Ecto.Query, only: [from: 2]
 
@@ -12,14 +12,17 @@ defmodule ChatWeb.GroupController do
     json(conn, %{chat_group_name: s, token: t})
   end
 
-  def get_groups(conn, params) do
-    # {:ok, res} = Ecto.Adapters.SQL.query Chat.Repo, "select * from groups_members where member_id = 'avsnalawade123@gmail.com'", []
-    res = from(g in Chat.GroupMember,
-      where: g.member_id == ^params["username"],
-      select: g.group_name
-    )
-    |> Chat.Repo.all
+  def sync(conn, params) do
+    case params["delete"]["username"] do
+      nil ->
+        json(conn, %{error: "you need to specify username"})
 
-    json(conn, res)
+      username ->
+        from(u in GroupMember, where: u.member_id == ^username)
+        |> Repo.delete_all()
+
+        json(conn, %{error: "", deleted: true})
+    end
   end
+
 end

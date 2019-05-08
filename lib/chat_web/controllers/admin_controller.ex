@@ -3,30 +3,6 @@ defmodule ChatWeb.AdminController do
   alias Chat.Repo
   import Ecto.Query, only: [from: 2]
 
-  plug ChatWeb.Plugs.RequireAdmin when action not in [:login]
-
-  def login(conn, param) do
-    case authenticate(param["username"], param["token"]) do
-      {:ok, user} ->
-        case user.role do
-          "Admin" ->
-            conn
-            |> json(%{
-              loggedin: "success",
-              token: Phoenix.Token.sign(ChatWeb.Endpoint, "salt", user)
-            })
-
-          _ ->
-            conn
-            |> json(%{loggedin: "failed", error: "You are NOT an admin"})
-        end
-
-      {:error, _} ->
-        conn
-        |> json(%{loggedin: "failed"})
-    end
-  end
-
   def create_group(conn, param) do
     if Map.has_key?(param, "group_name") do
       Repo.insert(%Chat.Group{
@@ -217,33 +193,5 @@ defmodule ChatWeb.AdminController do
           end
       end
     end
-  end
-
-  def authenticate(username, token) do
-    {:ok, encoded} = Jason.encode(%{username: username, token: token})
-
-    case :httpc.request(
-           :post,
-           {'http://staging.cense.ai:8084/v1/chat/authenticate', [], 'application/json',
-            '#{encoded}'},
-           [],
-           []
-         ) do
-      {:ok, res} ->
-        {_, _, res} = res
-
-        case Jason.decode(res) do
-          {:ok, "token invalid"} ->
-            {:error, %{reason: "invalid"}}
-
-          {:ok, %{"Companyname" => company, "Role" => role, "username" => username}} ->
-            {:ok, %{company: company, username: username, role: role}}
-        end
-
-      _ ->
-        {:error, %{reason: "invalid"}}
-    end
-
-    # {:ok, %{username: username, company: "MT Care"}}
   end
 end
