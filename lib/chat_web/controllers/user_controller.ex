@@ -60,12 +60,13 @@ defmodule ChatWeb.UserController do
     if !Map.has_key? params, "group_name" do
       json(conn, %{error: "you need to supply an group name"})
     else
+      group_name = params["group_name"]
       if Map.has_key? params, "last" do
-        from(m in Chat.GroupMessage, where: m.group_name == ^params["group_name"], order_by: [desc: m.id], limit: 10) |> Repo.all()
+        # from(m in Chat.GroupMessage, where: m.group_name == ^params["group_name"], order_by: [desc: m.id], limit: 10) |> Repo.all()
       else
         # res = from(m in Chat.GroupMessage, where: m.group_name == ^params["group_name"], order_by: [desc: m.id], limit: 10) |> Repo.all()
 
-	{:ok, res} = Ecto.Adapters.SQL.query Chat.Repo, "select * from (select * from groups_messages as gm2 order by gm2.id desc limit 10) as gm1 order by id;", []
+        {:ok, res} = Ecto.Adapters.SQL.query Chat.Repo, "select * from (select * from groups_messages as gm2 where gm2.group_name = '#{group_name}' order by gm2.id desc limit 10) as gm1 order by id;", []
 
 
         case res do

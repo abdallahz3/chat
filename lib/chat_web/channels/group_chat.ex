@@ -51,7 +51,13 @@ defmodule ChatWeb.Group do
   end
 
   def handle_in("new_chat_message", %{"message" => message}, socket) do
-    IO.puts(message)
+    "groups:" <> topic = socket.topic
+    Repo.insert(%Chat.GroupMessage{
+          group_name: topic,
+          message: message,
+          member_id: socket.assigns.user.username
+    })
+
 
     broadcast!(socket, "new_chat_message", %{
       message: message,
