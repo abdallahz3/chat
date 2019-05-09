@@ -1,4 +1,4 @@
-defmodule ChatWeb.SupportAgentGroup do
+defmodule ChatWeb.SupportAgentsGroup do
   use ChatWeb, :channel
 
   def join("companies:" <> company, _params, socket) do

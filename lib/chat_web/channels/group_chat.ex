@@ -9,11 +9,11 @@ defmodule ChatWeb.Group do
       # one to one chat
       [u1, u2] = String.split(group_name, "|")
 
-      if socket.assigns.user.username != u1 and socket.assigns.user.username != u2 do
-        {:error, %{reason: "You are not in this Group"}}
-      else
+      if socket.assigns.user.username == u1 or socket.assigns.user.username == u2 do
         send(self(), {:after_join, group_name})
         {:ok, socket}
+      else
+        {:error, %{reason: "You are not in this Group"}}
       end
     else
       case Repo.get_by(Chat.Group, group_name: group_name) do
