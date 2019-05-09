@@ -24,5 +24,4 @@ defmodule ChatWeb.ApiController do
         json(conn, %{error: "", deleted: true})
     end
   end
-
 end

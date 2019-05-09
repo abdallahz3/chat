@@ -8,11 +8,11 @@ defmodule ChatWeb.CustomerGroup do
       if socket.assigns.user.customer_group_name != customer_group_name do
         {:error, %{reason: "Not your chat group"}}
       else
-      {:ok, socket}
+        {:ok, socket}
       end
     else
-        # TODO: should check for only support agents
-        {:ok, socket}
+      # TODO: should check for only support agents
+      {:ok, socket}
     end
   end
 

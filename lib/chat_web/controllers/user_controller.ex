@@ -57,27 +57,137 @@ defmodule ChatWeb.UserController do
   end
 
   def get_previous_messages_of_group(conn, params) do
-    if !Map.has_key? params, "group_name" do
+    if !Map.has_key?(params, "group_name") do
       json(conn, %{error: "you need to supply an group name"})
     else
       group_name = params["group_name"]
-      if Map.has_key? params, "last" do
-        # from(m in Chat.GroupMessage, where: m.group_name == ^params["group_name"], order_by: [desc: m.id], limit: 10) |> Repo.all()
-      else
-        # res = from(m in Chat.GroupMessage, where: m.group_name == ^params["group_name"], order_by: [desc: m.id], limit: 10) |> Repo.all()
 
-        {:ok, res} = Ecto.Adapters.SQL.query Chat.Repo, "select * from (select * from groups_messages as gm2 where gm2.group_name = '#{group_name}' order by gm2.id desc limit 10) as gm1 order by id;", []
+      if Map.has_key?(params, "last") do
+        last = params["last"]
 
+        {:ok, res} =
+          Ecto.Adapters.SQL.query(
+            Chat.Repo,
+            "select * from (select * from groups_messages as gm2 where gm2.group_name = '#{
+              group_name
+            }' order by gm2.id desc limit #{last}) as gm1 order by id;",
+            []
+          )
 
         case res do
-          [] -> json(conn, %{error: "no messages yet"})
+          [] ->
+            json(conn, %{error: "no messages yet"})
+
           messages ->
-            # messages = Enum.map messages.rows, fn m -> %{group_name: m.group_name, member_id: m.member_id, message: m.message} end
-            messages = Enum.map messages.rows, fn m ->
-              [_, group_name, member_id, message, _, _] = m
-              %{group_name: group_name, member_id: member_id, message: message}
-            end
+            messages =
+              Enum.map(messages.rows, fn m ->
+                [_, group_name, member_id, message, _, _] = m
+                %{group_name: group_name, member_id: member_id, message: message}
+              end)
+
             json(conn, %{error: "", messages: messages})
+        end
+      else
+        if Map.has_key?(params, "from") and Map.has_key?(params, "to") do
+          from_id = params["from"]
+          to_id = params["to"]
+
+          {:ok, res} =
+            Ecto.Adapters.SQL.query(
+              Chat.Repo,
+              "select * from groups_messages where id >= #{from_id}  and id <= #{to_id} order by id;",
+              []
+            )
+
+          case res do
+            [] ->
+              json(conn, %{error: "no messages yet"})
+
+            messages ->
+              messages =
+                Enum.map(messages.rows, fn m ->
+                  [_, group_name, member_id, message, _, _] = m
+                  %{group_name: group_name, member_id: member_id, message: message}
+                end)
+
+              json(conn, %{error: "", messages: messages})
+          end
+        else
+          if Map.has_key?(params, "to") do
+            to_id = params["to"]
+
+            {:ok, res} =
+              Ecto.Adapters.SQL.query(
+                Chat.Repo,
+                "select * from groups_messages where id <= #{to_id} order by id;",
+                []
+              )
+
+            case res do
+              [] ->
+                json(conn, %{error: "no messages yet"})
+
+              messages ->
+                messages =
+                  Enum.map(messages.rows, fn m ->
+                    [_, group_name, member_id, message, _, _] = m
+                    %{group_name: group_name, member_id: member_id, message: message}
+                  end)
+
+                json(conn, %{error: "", messages: messages})
+            end
+          else
+            if Map.has_key?(params, "from") and Map.has_key?(params, "to") do
+              from_id = params["from"]
+              to_id = params["to"]
+
+              {:ok, res} =
+                Ecto.Adapters.SQL.query(
+                  Chat.Repo,
+                  "select * from groups_messages where id >= #{from_id}  and id <= #{to_id} order by id;",
+                  []
+                )
+
+              case res do
+                [] ->
+                  json(conn, %{error: "no messages yet"})
+
+                messages ->
+                  messages =
+                    Enum.map(messages.rows, fn m ->
+                      [_, group_name, member_id, message, _, _] = m
+                      %{group_name: group_name, member_id: member_id, message: message}
+                    end)
+
+                  json(conn, %{error: "", messages: messages})
+              end
+            end
+
+            if Map.has_key?(params, "from") do
+              from_id = params["from"]
+
+              {:ok, res} =
+                Ecto.Adapters.SQL.query(
+                  Chat.Repo,
+                  "select * from groups_messages where id >= #{from_id} order by id;",
+                  []
+                )
+
+              case res do
+                [] ->
+                  json(conn, %{error: "no messages yet"})
+
+                messages ->
+                  messages =
+                    Enum.map(messages.rows, fn m ->
+                      [_, group_name, member_id, message, _, _] = m
+                      %{group_name: group_name, member_id: member_id, message: message}
+                    end)
+
+                  json(conn, %{error: "", messages: messages})
+              end
+            end
+          end
         end
       end
     end

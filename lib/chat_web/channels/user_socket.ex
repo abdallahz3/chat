@@ -26,10 +26,17 @@ defmodule ChatWeb.UserSocket do
         socket,
         _connect_info
       ) do
-    IO.inspect socket
+    IO.inspect(socket)
+
     case Phoenix.Token.verify(ChatWeb.Endpoint, "salt", token, max_age: 86400) do
       {:ok, customer_group_name} ->
-        user = %{company: company, customer_group_name: customer_group_name, is_customer: true, name: nil}
+        user = %{
+          company: company,
+          customer_group_name: customer_group_name,
+          is_customer: true,
+          name: nil
+        }
+
         socket = assign(socket, :user, user)
 
         {:ok, socket}

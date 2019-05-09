@@ -23,7 +23,8 @@ defmodule ChatWeb.Group do
         group ->
           case from(g in Chat.GroupMember,
                  where:
-                   g.group_name == ^group.group_name and g.member_id == ^socket.assigns.user.username,
+                   g.group_name == ^group.group_name and
+                     g.member_id == ^socket.assigns.user.username,
                  select: g
                )
                |> Chat.Repo.all() do
@@ -52,12 +53,12 @@ defmodule ChatWeb.Group do
 
   def handle_in("new_chat_message", %{"message" => message}, socket) do
     "groups:" <> topic = socket.topic
-    Repo.insert(%Chat.GroupMessage{
-          group_name: topic,
-          message: message,
-          member_id: socket.assigns.user.username
-    })
 
+    Repo.insert(%Chat.GroupMessage{
+      group_name: topic,
+      message: message,
+      member_id: socket.assigns.user.username
+    })
 
     broadcast!(socket, "new_chat_message", %{
       message: message,
