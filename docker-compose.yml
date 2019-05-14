@@ -2,12 +2,11 @@ version: '3'
 
 services:
   phoenix:
-    build:
-      context: .
+    build: .
     environment:
       PGUSER: postgres
       PGPASSWORD: postgres
-      PGDATABASE: chat_prod
+      PGDATABASE: chat_dev
       PGPORT: 5432
       PGHOST: db
     ports:

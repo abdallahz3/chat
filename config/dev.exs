@@ -69,8 +69,8 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Configure your database
 config :chat, Chat.Repo,
-  username: "postgres",
-  password: "postgres",
-  database: "chat_dev",
-  hostname: "localhost",
+  username: System.get_env("PGUSER") || "postgres",
+  password: System.get_env("PGPASSWORD") || "postgres",
+  database: System.get_env("PGDATABASE") || "chat_dev",
+  hostname: System.get_env("PGHOST") || "localhost",
   pool_size: 10
