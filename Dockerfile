@@ -13,4 +13,8 @@ RUN mix deps.get
 
 RUN mix do compile
 
+ENV PGHOST=localhost
+ENV PGPORT=5432
+ENV PGUSER=postgres
+
 CMD [ "/app/entrypoint.sh" ]
