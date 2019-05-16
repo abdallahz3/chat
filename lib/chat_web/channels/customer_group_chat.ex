@@ -42,7 +42,7 @@ defmodule ChatWeb.CustomerGroup do
 
       broadcast!(socket, "new_chat_message", %{
         message: message,
-        sender: socket.assigns.user.name || "customer"
+        sender: "customer"
       })
     end
 
@@ -53,8 +53,8 @@ defmodule ChatWeb.CustomerGroup do
 
     if Map.has_key?(socket.assigns.user, :is_customer) && socket.assigns.user.is_customer == true do
     # if socket.assigns.user.is_customer do
-      socket = assign(socket, :name, name)
-      socket = put_in(socket, [:assigns, :user, :name], name)
+      # socket = assign(socket, :name, name)
+      # socket = put_in(socket, [:assigns, :user, :name], name)
       broadcast_from(socket, "new_name", %{sender: "customer", name: name})
     end
 
