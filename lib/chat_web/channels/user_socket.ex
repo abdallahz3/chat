@@ -3,7 +3,7 @@ defmodule ChatWeb.UserSocket do
 
   ## Channels
   channel "customers_groups:*", ChatWeb.CustomerGroup
-  channel "companies:*", ChatWeb.SupportAgentGroup
+  channel "companies:*", ChatWeb.SupportAgentsGroup
   channel "groups:*", ChatWeb.Group
 
   def connect(
