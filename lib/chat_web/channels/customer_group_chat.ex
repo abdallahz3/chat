@@ -4,7 +4,7 @@ defmodule ChatWeb.CustomerGroup do
   alias Chat.CustomerMessage
 
   def join("customers_groups:" <> customer_group_name, _params, socket) do
-    if socket.assigns.user[:is_customer] && socket.assigns.user.is_customer == true  do
+    if Map.has_key?(socket.assigns.user, :is_customer) && socket.assigns.user.is_customer == true  do
       if socket.assigns.user.customer_group_name != customer_group_name do
         {:error, %{reason: "Not your chat group"}}
       else
