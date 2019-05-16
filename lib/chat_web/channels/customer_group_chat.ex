@@ -19,7 +19,8 @@ defmodule ChatWeb.CustomerGroup do
   def handle_in("new_chat_message", %{"message" => message}, socket) do
     "customers_groups:" <> topic = socket.topic
 
-    if !socket.assigns.user.is_customer do
+    if Map.has_key?(socket.assigns.user, :is_customer) && socket.assigns.user.is_customer == false do
+    # if !socket.assigns.user.is_customer do
       Repo.insert(%CustomerMessage{
         group_name: topic,
         company_id: socket.assigns.user.company,
@@ -49,7 +50,9 @@ defmodule ChatWeb.CustomerGroup do
   end
 
   def handle_in("new_name", %{"name" => name}, socket) do
-    if socket.assigns.user.is_customer do
+
+    if Map.has_key?(socket.assigns.user, :is_customer) && socket.assigns.user.is_customer == true do
+    # if socket.assigns.user.is_customer do
       socket = assign(socket, :name, name)
       socket = put_in(socket, [:assigns, :user, :name], name)
       broadcast_from(socket, "new_name", %{sender: "customer", name: name})
@@ -59,7 +62,9 @@ defmodule ChatWeb.CustomerGroup do
   end
 
   def handle_in("started_typing", _, socket) do
-    if !socket.assigns.user.is_customer do
+
+    if Map.has_key?(socket.assigns.user, :is_customer) && socket.assigns.user.is_customer == false do
+    # if !socket.assigns.user.is_customer do
       broadcast_from(socket, "started_typing", %{sender: "support_agent"})
     else
       broadcast_from(socket, "started_typing", %{sender: "customer"})
@@ -69,7 +74,9 @@ defmodule ChatWeb.CustomerGroup do
   end
 
   def handle_in("stopped_typing", _, socket) do
-    if !socket.assigns.user.is_customer do
+
+    if Map.has_key?(socket.assigns.user, :is_customer) && socket.assigns.user.is_customer == false do
+    # if !socket.assigns.user.is_customer do
       broadcast_from(socket, "stopped_typing", %{sender: "support_agent"})
     else
       broadcast_from(socket, "stopped_typing", %{sender: "customer"})
