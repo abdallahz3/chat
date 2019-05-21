@@ -27,4 +27,6 @@ RUN cd assets && npm install && npm run deploy && cd ../ && mix phx.digest
 
 # RUN cd assets && webpack --mode production && cd ..
 
+EXPOSE 4000
+
 CMD [ "/app/entrypoint.sh" ]
