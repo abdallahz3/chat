@@ -68,4 +68,16 @@ config :logger, level: :info
 
 # Finally import the config/prod.secret.exs which should be versioned
 # separately.
-import_config "prod.secret.exs"
+# import_config "prod.secret.exs"
+
+
+config :chat, ChatWeb.Endpoint,
+  secret_key_base: "xifW1yZnunOYipZqEEjmAGxh+t+robUx9e7OO9RIOZsAXWw9DumYNedgjBGvTX/o"
+
+# Configure your database
+config :chat, Chat.Repo,
+  username: System.get_env("PGUSER") || "postgres",
+  password: System.get_env("PGPASSWORD") || "postgres",
+  database: System.get_env("PGDATABASE") || "chat_dev",
+  hostname: System.get_env("PGHOST") || "localhost",
+  pool_size: 15
