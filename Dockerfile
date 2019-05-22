@@ -12,6 +12,7 @@ RUN apt-get install nodejs
 RUN apt-get install -y inotify-tools
 
 
+ENV MIX_ENV=prod
 
 
 RUN mkdir /app
