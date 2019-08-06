@@ -10,10 +10,19 @@ use Mix.Config
 # which you should run after static files are built and
 # before starting your production server.
 config :chat, ChatWeb.Endpoint,
-  http: [port: System.get_env("PORT") || 4000, ip: {0, 0, 0, 0}],
-  url: [host: "staging.cense.ai", port: 4000],
-  cache_static_manifest: "priv/static/cache_manifest.json"
-  check_origin: ["localhost", "staging.cense.ai"]
+ # https: [port: System.get_env("PORT") || 443, ip: {0, 0, 0, 0}],
+  url: [host: "staging.cense.ai", port: 443],
+        https: [
+        :inet6,
+        port: 443,
+        cipher_suite: :strong,
+        keyfile: "/app/certs/privkey.pem",
+        certfile: "/app/certs/fullchain.pem"
+      ],
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  check_origin: ["http://localhost:8080","https://staging.cense.ai:4000","https://staging.cense.ai"],
+  server: true,
+  root: "."
 
 # Do not print debug messages in production
 config :logger, level: :info

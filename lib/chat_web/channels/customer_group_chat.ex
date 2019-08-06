@@ -15,6 +15,7 @@ defmodule ChatWeb.CustomerGroup do
       {:ok, socket}
     end
   end
+  
 
   def handle_in("new_chat_message", %{"message" => message}, socket) do
     "customers_groups:" <> topic = socket.topic
@@ -73,6 +74,11 @@ defmodule ChatWeb.CustomerGroup do
     {:noreply, socket}
   end
 
+  def handle_in("stopped_chat", %{"name" => name, "message" => message}, socket) do
+           broadcast!(socket, "stopped_chat", %{message: message,name: name})
+           {:noreply, socket}
+  end
+
   def handle_in("stopped_typing", _, socket) do
 
     if !Map.has_key?(socket.assigns.user, :is_customer) || socket.assigns.user.is_customer == false do
@@ -84,7 +90,7 @@ defmodule ChatWeb.CustomerGroup do
 
     {:noreply, socket}
   end
-
+  
   def handle_in("customer_needs_support_agent", _msg, socket) do
     ChatWeb.Endpoint.broadcast_from!(
       self(),

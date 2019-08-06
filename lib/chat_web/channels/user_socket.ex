@@ -57,7 +57,7 @@ defmodule ChatWeb.UserSocket do
 
        case :httpc.request(
               :post,
-              {'http://staging.cense.ai:8084/v1/chat/authenticate', [], 'application/json',
+              {'https://staging.cense.ai:8084/bot/v1/chat/authenticate', [], 'application/json',
                '#{encoded}'},
               [],
               []
@@ -77,6 +77,7 @@ defmodule ChatWeb.UserSocket do
            {:error, %{reason: "invalid"}}
        end
 
-    # {:ok, %{username: username, company: "MT Care", role: "User"}}
+ #    {:ok, %{username: username, company: "MT Care", role: "User"}}
+ #   {:ok, %{username: username, company: "MT Care", role: "support agent"}}
   end
 end

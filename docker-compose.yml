@@ -10,7 +10,7 @@ services:
       PGPORT: 5432
       PGHOST: db
     ports:
-    - "4000:4000"
+    - "4000:443"
     depends_on:
     - db
   
